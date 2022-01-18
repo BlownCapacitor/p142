@@ -1,0 +1,90 @@
+from storage import all_articles, liked_articles, not_liked_articles, did_not_read
+from demographicFiltering import output
+from contentBasedFiltering import recommendations
+import itertools
+
+from flask import Flask, jsonify, request
+import csv
+
+app = Flask(__name__)
+
+@app.route("/allArticles")
+
+def allArticles():
+    return jsonify({
+        "data" : all_articles[0],
+        "status" : "All Articles"
+    }),000
+
+@app.route("/likedArticles", methods = ["POST"])
+
+def likedArticles():
+    global all_articles
+    article2 = all_articles[0]
+    all_articles = all_articles[1:]
+    liked_articles.append(article2)
+    return jsonify({
+      "message" : "Liked articles"
+    }),100
+
+@app.route("/not_likedArticles", methods = ["POST"])
+
+def not_likedArticles():
+    global all_articles
+    article3 = all_articles[0]
+    all_articles = all_articles[1:]
+    not_liked_articles.append(article3)
+    return jsonify({
+        "Message" : "Disliked articles"
+    }),200
+
+@app.route("/didNotRead", methods = ["POST"])
+
+def didNotRead():
+    global all_articles
+    article4 = all_articles[0]
+    all_articles = all_articles[1:]
+    didNotRead.append(article4)
+    return jsonify({
+        "message" : "Did Not Read"
+    }),300
+
+
+@app.route("/popular-articles")
+def popular_articlees():
+    article_data = []
+    for article in output:
+        _d = {
+            "title": article[2],
+            "Total_events": article[1],
+        }
+        article_data.append(_d)
+    return jsonify({
+        "data": article_data,
+        "status": "success"
+    }), 200
+
+@app.route("/recommended-articles")
+def recommended_articles():
+    all_recommended = []
+    for liked_article in liked_articles:
+        output = recommendations(liked_article[19])
+        for data in output:
+            all_recommended.append(data)
+    
+    all_recommended.sort()
+    all_recommended = list(all_recommended for all_recommended,_ in itertools.groupby(all_recommended))
+    article_data = []
+    for recommended in all_recommended:
+        _d = {
+            "title": recommended[2],
+            "Total_events": recommended[1],
+        }
+        article_data.append(_d)
+    return jsonify({
+        "data": article_data,
+        "status": "success"
+    }), 200
+
+if __name__ == "__main__":
+  app.run()
